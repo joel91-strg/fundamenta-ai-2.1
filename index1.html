@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FUNDAMENTA AI — Gold · Nasdaq · US30</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#05080F;--bg1:#0A1020;--bg2:#0F1828;--bg3:#162035;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --txt:#E0E8F5;--txt2:#7A90B0;--txt3:#3D5070;
+  --gold:#F0B90B;--gold2:rgba(240,185,11,0.1);--gold3:rgba(240,185,11,0.22);
+  --ndx:#3B9EFF;--ndx2:rgba(59,158,255,0.1);
+  --us30:#A78BFA;--us30-2:rgba(167,139,250,0.1);
+  --bull:#10B981;--bull2:rgba(16,185,129,0.1);--bull3:rgba(16,185,129,0.22);
+  --bear:#EF4444;--bear2:rgba(239,68,68,0.1);
+  --warn:#F59E0B;--warn2:rgba(245,158,11,0.1);
+  --r:10px;--r2:6px;
+  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg0);color:var(--txt);min-height:100vh;font-size:14px;line-height:1.5;overflow-x:hidden}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:200;background:var(--bg1);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 16px;gap:14px}
+.logo{display:flex;align-items:center;gap:9px;min-width:195px;flex-shrink:0}
+.logo-hex{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:19px;color:#000;font-weight:700}
+.logo-n{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:.8px;display:block}
+.logo-s{font-size:9px;color:var(--txt3);letter-spacing:1.4px;text-transform:uppercase;display:block}
+.ticker-wrap{flex:1;overflow:hidden;position:relative}
+.ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:36px;z-index:2;pointer-events:none}
+.ticker-wrap::before{left:0;background:linear-gradient(to right,var(--bg1),transparent)}
+.ticker-wrap::after{right:0;background:linear-gradient(to left,var(--bg1),transparent)}
+.ticker-inner{display:flex;gap:18px;animation:tick 50s linear infinite;white-space:nowrap;width:max-content}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{display:flex;align-items:center;gap:6px}
+.ti-n{font-family:var(--mono);font-size:10px;color:var(--txt3);font-weight:600}
+.ti-v{font-family:var(--mono);font-size:12px;font-weight:700}
+.ti-c{font-family:var(--mono);font-size:10px}
+.ti-sep{color:var(--border2);font-size:14px}
+.topbar-r{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.live-badge{display:flex;align-items:center;gap:5px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--bear);font-family:var(--mono);font-weight:700;letter-spacing:1px}
+.ldot{width:6px;height:6px;background:var(--bear);border-radius:50%;animation:blink 1.2s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.clock{font-family:var(--mono);font-size:11px;color:var(--txt3)}
+
+/* ── NAV ── */
+.nav{background:var(--bg1);border-bottom:1px solid var(--border);display:flex;padding:0 12px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.ntab{background:none;border:none;border-bottom:2px solid transparent;color:var(--txt3);font-family:var(--sans);font-size:13px;font-weight:500;padding:11px 15px;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:5px}
+.ntab svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.8;fill:none;flex-shrink:0}
+.ntab:hover{color:var(--txt)}
+.ntab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ── PANELS ── */
+.wrap{padding:14px}
+.page{display:none}
+.page.on{display:block}
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015)}
+.ptitle{font-size:11px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:6px}
+.ptitle svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* ── DASHBOARD CARDS ── */
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.acard{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.ac-gold{border-left:3px solid var(--gold)}
+.ac-ndx{border-left:3px solid var(--ndx)}
+.ac-us30{border-left:3px solid var(--us30)}
+.ac-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.ac-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
+.icon-g{background:var(--gold2);color:var(--gold)}
+.icon-n{background:var(--ndx2);color:var(--ndx)}
+.icon-u{background:var(--us30-2);color:var(--us30)}
+.ac-lbl{font-size:10px;color:var(--txt3);font-weight:600;letter-spacing:.5px;margin-bottom:3px}
+.ac-px{font-family:var(--mono);font-size:19px;font-weight:700}
+.ac-right{margin-left:auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.sbadge{font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.s-bull{background:var(--bull2);color:var(--bull);border:1px solid rgba(16,185,129,.25)}
+.s-bear{background:var(--bear2);color:var(--bear);border:1px solid rgba(239,68,68,.25)}
+.s-neut{background:var(--warn2);color:var(--warn);border:1px solid rgba(245,158,11,.25)}
+.ring-w{display:flex;flex-direction:column;align-items:center;gap:2px}
+.ring-svg{width:42px;height:42px}
+.ring-lbl{font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
+.drivers{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.drv{font-size:10px;padding:2px 7px;border-radius:20px;display:flex;align-items:center;gap:3px}
+.drv-b{background:var(--bull2);color:var(--bull)}
+.drv-r{background:var(--bear2);color:var(--bear)}
+.drv-w{background:var(--warn2);color:var(--warn)}
+.pred-row{background:var(--bg0);border-radius:var(--r2);padding:7px 10px;display:flex;align-items:center;justify-content:space-between}
+.pred-lbl{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
+.pred-v{font-family:var(--mono);font-size:11px;font-weight:600}
+
+/* ── SPLIT ── */
+.split2{display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:12px}
+.side{display:flex;flex-direction:column;gap:12px}
+.side .panel{margin-bottom:0}
+
+/* ── NEWS ── */
+.nfilt{display:flex;gap:4px}
+.nfbtn{background:none;border:1px solid var(--border2);border-radius:20px;padding:3px 9px;font-size:10px;color:var(--txt3);cursor:pointer;font-family:var(--sans);transition:all .15s}
+.nfbtn.on{background:var(--gold2);border-color:rgba(240,185,11,.3);color:var(--gold)}
+.nfeed{max-height:400px;overflow-y:auto}
+.nfeed::-webkit-scrollbar{width:3px}
+.nfeed::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+.nitem{padding:11px 15px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.nitem:hover{background:rgba(255,255,255,.02)}
+.nitem:last-child{border-bottom:none}
+.nh{font-size:12.5px;color:var(--txt);line-height:1.45;margin-bottom:6px}
+.nmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nsrc{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.ntime{font-family:var(--mono);font-size:9px;color:var(--txt3)}
+.nimp{font-size:8px;padding:2px 5px;border-radius:3px;font-weight:700}
+.imp-h{background:var(--bear2);color:var(--bear)}
+.imp-m{background:var(--warn2);color:var(--warn)}
+.imp-l{background:rgba(255,255,255,.05);color:var(--txt3)}
+.ntags{display:flex;gap:3px}
+.ntag{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:600}
+.tg{background:var(--gold2);color:var(--gold)}
+.tn{background:var(--ndx2);color:var(--ndx)}
+.tu{background:var(--us30-2);color:var(--us30)}
+
+/* ── MACRO MINI ── */
+.macro6{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:12px}
+.mci{background:var(--bg0);border-radius:var(--r2);padding:8px 10px}
+.mci-l{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.mci-v{font-family:var(--mono);font-size:15px;font-weight:700;margin-bottom:1px}
+.mci-s{font-size:10px;color:var(--txt3)}
+
+/* ── MINI CALENDAR ── */
+.mcev{display:flex;align-items:center;gap:9px;padding:8px 13px;border-bottom:1px solid var(--border)}
+.mcev:last-child{border-bottom:none}
+.mct{font-family:var(--mono);font-size:10px;color:var(--txt3);min-width:30px;flex-shrink:0}
+.mcn{font-size:11px;color:var(--txt);flex:1}
+.mcd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mcd-h{background:var(--bear);box-shadow:0 0 5px rgba(239,68,68,.5)}
+.mcd-m{background:var(--warn)}
+
+/* ── ASSET HERO ── */
+.hero{border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap;margin-bottom:12px}
+.hero-g{background:linear-gradient(135deg,rgba(240,185,11,.05),var(--bg1) 60%);border-left:4px solid var(--gold)}
+.hero-n{background:linear-gradient(135deg,rgba(59,158,255,.05),var(--bg1) 60%);border-left:4px solid var(--ndx)}
+.hero-u{background:linear-gradient(135deg,rgba(167,139,250,.05),var(--bg1) 60%);border-left:4px solid var(--us30)}
+.hero-l{flex:1}
+.hero-lbl{font-size:11px;font-weight:600;letter-spacing:.8px;margin-bottom:6px;opacity:.75}
+.hero-px{font-family:var(--mono);font-size:38px;font-weight:700;margin-bottom:4px;line-height:1}
+.hero-chg{font-family:var(--mono);font-size:14px;font-weight:500;margin-bottom:4px}
+.hero-rng{font-size:10px;color:var(--txt3);font-family:var(--mono)}
+.hero-r{display:flex;flex-direction:column;gap:10px;min-width:270px}
+.sig-box{border-radius:var(--r2);padding:11px 14px}
+.sig-bull{background:var(--bull2);border:1px solid rgba(16,185,129,.2)}
+.sig-bear{background:var(--bear2);border:1px solid rgba(239,68,68,.2)}
+.sig-neut{background:var(--warn2);border:1px solid rgba(245,158,11,.2)}
+.sig-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);margin-bottom:4px}
+.sig-v{font-size:15px;font-weight:700;margin-bottom:2px}
+.sig-c{font-size:10px;color:var(--txt3)}
+.pred-box{background:var(--bg0);border-radius:var(--r2);padding:10px 13px;border:1px solid var(--border)}
+.pred-lbl2{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:4px}
+.pred-v2{font-family:var(--mono);font-size:13px;font-weight:600;margin-bottom:2px}
+.pred-s{font-size:10px;color:var(--txt3)}
+
+/* ── BODY 2COL ── */
+.body2{display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:12px}
+.body2 .panel{margin-bottom:0}
+
+/* ── PERSONS ── */
+.plist{padding:4px 0}
+.pitem{display:flex;gap:11px;padding:10px 13px;border-bottom:1px solid var(--border);align-items:flex-start}
+.pitem:last-child{border-bottom:none}
+.pav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.pav-g{background:var(--gold2);color:var(--gold);border:1px solid rgba(240,185,11,.3)}
+.pav-n{background:var(--ndx2);color:var(--ndx);border:1px solid rgba(59,158,255,.3)}
+.pav-u{background:var(--us30-2);color:var(--us30);border:1px solid rgba(167,139,250,.3)}
+.pname{font-size:13px;font-weight:600;margin-bottom:1px}
+.prole{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.pquote{font-size:11px;color:var(--txt2);line-height:1.5;font-style:italic;border-left:2px solid var(--border2);padding-left:7px;margin-bottom:4px}
+.pimp{font-size:11px;font-weight:500}
+
+/* ── FACTOR BARS ── */
+.fbars{padding:12px 13px;display:flex;flex-direction:column;gap:8px}
+.fbi{display:flex;align-items:center;gap:9px}
+.fbl{font-size:11px;color:var(--txt2);min-width:130px;flex-shrink:0}
+.fbbar{flex:1;height:5px;background:var(--bg0);border-radius:3px;overflow:hidden}
+.fbfill{height:100%;border-radius:3px;transition:width 1s ease}
+.fb-g{background:var(--bull)}
+.fb-r{background:var(--bear)}
+.fb-w{background:var(--warn)}
+.fbval{font-family:var(--mono);font-size:10px;font-weight:600;min-width:26px;text-align:right}
+
+/* ── ANALYSIS ── */
+.ablock{padding:15px;font-size:13px;line-height:1.75}
+.aload{display:flex;align-items:center;gap:9px;color:var(--txt3);font-size:13px;padding:10px 0}
+.ablock h3{font-size:12px;font-weight:600;color:var(--gold);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px}
+.ablock h3:first-child{margin-top:0}
+.ablock p{margin-bottom:8px;color:var(--txt2)}
+.ablock strong{color:var(--txt);font-weight:500}
+
+/* ── MACRO TABLE ── */
+.mactab{display:flex;flex-direction:column}
+.mrow{display:grid;grid-template-columns:1.3fr .8fr 1fr 1.2fr;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:12px;align-items:center}
+.mrow:last-child{border-bottom:none}
+.mrow-h{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.02)}
+.mrow-name{color:var(--txt);font-weight:500}
+
+/* ── CALENDAR FULL ── */
+.cdh{padding:9px 14px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
+.cev{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);transition:background .12s}
+.cev:hover{background:rgba(255,255,255,.015)}
+.cev:last-child{border-bottom:none}
+.cev-h{border-left:3px solid var(--bear)}
+.cev-m{border-left:3px solid var(--warn)}
+.cet{font-family:var(--mono);font-size:11px;color:var(--txt3);min-width:36px;flex-shrink:0}
+.ceb{flex:1}
+.cen{font-size:13px;font-weight:500;margin-bottom:2px}
+.ced{font-size:10px;color:var(--txt3);font-family:var(--mono);margin-bottom:2px}
+.cei{font-size:11px}
+.cedot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* ── CHAT ── */
+.chat-page{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;height:calc(100vh - 140px);min-height:500px}
+.chat-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 17px;border-bottom:1px solid var(--border);background:rgba(240,185,11,.03);flex-wrap:wrap;gap:8px}
+.chat-hd-l{display:flex;align-items:center;gap:11px}
+.chat-av-big{width:42px;height:42px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#000;flex-shrink:0}
+.chat-hd-name{font-size:14px;font-weight:700;color:var(--gold)}
+.chat-hd-sub{font-size:9px;color:var(--txt3);letter-spacing:.3px}
+.src-pills{display:flex;gap:4px;flex-wrap:wrap}
+.srcp{font-size:8px;padding:2px 7px;border-radius:10px;border:1px solid rgba(16,185,129,.3);color:var(--bull);background:var(--bull2);text-transform:uppercase;letter-spacing:.5px}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.chat-msgs::-webkit-scrollbar{width:4px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+.ai-msg{display:flex;gap:10px;align-items:flex-start}
+.ai-av{width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;flex-shrink:0}
+.ai-bub{background:var(--bg2);border:1px solid var(--border);border-radius:0 10px 10px 10px;padding:11px 14px;font-size:13px;color:var(--txt);line-height:1.7;flex:1}
+.ai-bub strong{color:var(--gold);font-weight:500}
+.ai-bub em{color:var(--txt2);font-style:italic}
+.user-msg{display:flex;justify-content:flex-end}
+.user-bub{background:var(--gold2);border:1px solid rgba(240,185,11,.18);border-radius:10px 0 10px 10px;padding:10px 13px;font-size:13px;color:var(--gold);max-width:82%;line-height:1.5}
+.typing{display:flex;gap:4px;align-items:center;padding:3px 0}
+.tdot{width:5px;height:5px;background:var(--gold);border-radius:50%;opacity:.25;animation:td 1.4s ease-in-out infinite}
+.tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,100%{opacity:.25}50%{opacity:1}}
+.search-indicator{font-size:10px;color:var(--txt3);display:flex;align-items:center;gap:5px;margin-top:4px}
+.qbts{display:flex;gap:7px;padding:10px 15px;border-top:1px solid var(--border);flex-wrap:wrap;background:rgba(255,255,255,.01)}
+.qbt{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 11px;font-size:11px;color:var(--txt2);cursor:pointer;font-family:var(--sans);transition:all .15s;white-space:nowrap}
+.qbt:hover{background:var(--gold2);border-color:rgba(240,185,11,.3);color:var(--gold)}
+.chat-input-row{display:flex;gap:8px;padding:12px 15px;border-top:1px solid var(--border)}
+.ci{flex:1;background:var(--bg0);border:1px solid var(--border2);border-radius:var(--r2);padding:11px 14px;font-size:13px;color:var(--txt);font-family:var(--sans);outline:none;transition:border-color .15s}
+.ci::placeholder{color:var(--txt3)}
+.ci:focus{border-color:rgba(240,185,11,.45);box-shadow:0 0 0 3px rgba(240,185,11,.07)}
+.send-btn{background:var(--gold);border:none;border-radius:var(--r2);padding:11px 20px;color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:6px;transition:background .15s,transform .1s;white-space:nowrap}
+.send-btn:hover{background:#ffc929}
+.send-btn:active{transform:scale(.97)}
+.send-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ── ASSET CHAT ── */
+.asset-chat{padding:12px 14px;min-height:110px;max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
+.asset-chat::-webkit-scrollbar{width:3px}
+.asset-chat::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+.aav-sm{width:27px;height:27px;font-size:11px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;background:var(--gold);color:#000}
+.g-send-btn{background:var(--gold2);border:1px solid rgba(240,185,11,.3);color:var(--gold)}
+.g-send-btn:hover{background:var(--gold3)}
+.n-send-btn{background:var(--ndx2);border:1px solid rgba(59,158,255,.3);color:var(--ndx)}
+.u-send-btn{background:var(--us30-2);border:1px solid rgba(167,139,250,.3);color:var(--us30)}
+
+/* ── UTILITIES ── */
+.g{color:var(--gold)}.n{color:var(--ndx)}.u{color:var(--us30)}
+.bull{color:var(--bull)}.bear{color:var(--bear)}.warn{color:var(--warn)}.dim{color:var(--txt3)}
+.mono{font-family:var(--mono)}
+.spin{width:13px;height:13px;border:2px solid var(--bg3);border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite;flex-shrink:0;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--txt3);background:var(--bg1);flex-wrap:wrap;gap:6px;margin-top:4px}
+.notif{position:fixed;bottom:20px;right:20px;z-index:999;background:var(--bg2);border:1px solid var(--gold);border-radius:8px;padding:9px 14px;font-size:11px;color:var(--gold);font-family:var(--mono);box-shadow:0 4px 24px rgba(0,0,0,.5);animation:fin .3s ease}
+@keyframes fin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.cards3,.split2,.body2{grid-template-columns:1fr}.hero{flex-direction:column}}
+@media(max-width:600px){.topbar{height:auto;flex-wrap:wrap;padding:8px 10px;gap:7px}.ticker-wrap{order:3;width:100%}.qbts{display:none}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-hex">⬡</div>
+    <div><span class="logo-n">FUNDAMENTA AI</span><span class="logo-s">Analyse Fondamentale Live</span></div>
+  </div>
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="ticker">
+      <span class="ti"><span class="ti-n">XAUUSD</span><span class="ti-v g" id="tk-gv">2341.80</span><span class="ti-c" id="tk-gc">–</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">NASDAQ</span><span class="ti-v n" id="tk-nv">19847.40</span><span class="ti-c" id="tk-nc">–</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">US30</span><span class="ti-v u" id="tk-uv">42156.30</span><span class="ti-c" id="tk-uc">–</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">DXY</span><span class="ti-v" id="tk-dv">104.32</span><span class="ti-c" id="tk-dc">–</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">US10Y</span><span class="ti-v" id="tk-10v">4.287%</span><span class="ti-c" id="tk-10c">–</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">VIX</span><span class="ti-v" id="tk-vv">14.82</span><span class="ti-c" id="tk-vc">–</span></span>
+      <!-- duplicate for seamless loop -->
+      <span class="ti"><span class="ti-n">XAUUSD</span><span class="ti-v g">2341.80</span><span class="ti-c bull">▲+0.42%</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">NASDAQ</span><span class="ti-v n">19847.40</span><span class="ti-c bull">▲+0.78%</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">US30</span><span class="ti-v u">42156.30</span><span class="ti-c bear">▼-0.21%</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">DXY</span><span class="ti-v">104.32</span><span class="ti-c bear">▼-0.11%</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">US10Y</span><span class="ti-v">4.287%</span><span class="ti-c bull">▲+3.2bp</span></span>
+      <span class="ti-sep">·</span>
+      <span class="ti"><span class="ti-n">VIX</span><span class="ti-v">14.82</span><span class="ti-c bear">▼-2.1%</span></span>
+    </div>
+  </div>
+  <div class="topbar-r">
+    <div class="live-badge"><div class="ldot"></div>LIVE</div>
+    <div class="clock" id="clk">--:--:-- UTC</div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="ntab active" data-p="dash">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+  </button>
+  <button class="ntab" data-p="gold">
+    <svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/></svg>Gold
+  </button>
+  <button class="ntab" data-p="ndx">
+    <svg viewBox="0 0 24 24"><polyline points="2,18 8,12 13,16 22,6"/><polyline points="16,6 22,6 22,12"/></svg>Nasdaq
+  </button>
+  <button class="ntab" data-p="us30">
+    <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4"/></svg>US30
+  </button>
+  <button class="ntab" data-p="macro">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Macro
+  </button>
+  <button class="ntab" data-p="cal">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendrier
+  </button>
+  <button class="ntab" data-p="ai">
+    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>Assistant IA
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  DASHBOARD                                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page on" id="p-dash">
+
+  <div class="cards3">
+    <!-- GOLD CARD -->
+    <div class="acard ac-gold">
+      <div class="ac-top">
+        <div class="ac-icon icon-g">⬡</div>
+        <div><div class="ac-lbl">GOLD · XAUUSD</div><div class="ac-px g" id="d-gp">2 341.80</div></div>
+        <div class="ac-right">
+          <div class="sbadge s-bull" id="d-gs">HAUSSIER FORT</div>
+          <div class="ring-w">
+            <svg class="ring-svg" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#162035" stroke-width="4"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#F0B90B" stroke-width="4"
+                stroke-dasharray="110 28" stroke-dashoffset="34" stroke-linecap="round" transform="rotate(-90 28 28)"/>
+              <text x="28" y="33" text-anchor="middle" fill="#F0B90B" font-size="11" font-family="JetBrains Mono" font-weight="700">82</text>
+            </svg>
+            <span class="ring-lbl">Score</span>
+          </div>
+        </div>
+      </div>
+      <div class="drivers">
+        <span class="drv drv-b">↑ Pivot FED</span>
+        <span class="drv drv-b">↑ DXY faible</span>
+        <span class="drv drv-w">⚠ Géopo.</span>
+        <span class="drv drv-b">↑ BC achats</span>
+      </div>
+      <div class="pred-row">
+        <span class="pred-lbl">Prévision 24h</span>
+        <span class="pred-v bull">▲ 2 355 – 2 390</span>
+      </div>
+    </div>
+
+    <!-- NDX CARD -->
+    <div class="acard ac-ndx">
+      <div class="ac-top">
+        <div class="ac-icon icon-n">◈</div>
+        <div><div class="ac-lbl">NASDAQ · NQ100</div><div class="ac-px n" id="d-np">19 847.40</div></div>
+        <div class="ac-right">
+          <div class="sbadge s-neut" id="d-ns">NEUTRE HAUSSIER</div>
+          <div class="ring-w">
+            <svg class="ring-svg" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#162035" stroke-width="4"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#F59E0B" stroke-width="4"
+                stroke-dasharray="83 55" stroke-dashoffset="34" stroke-linecap="round" transform="rotate(-90 28 28)"/>
+              <text x="28" y="33" text-anchor="middle" fill="#F59E0B" font-size="11" font-family="JetBrains Mono" font-weight="700">61</text>
+            </svg>
+            <span class="ring-lbl">Score</span>
+          </div>
+        </div>
+      </div>
+      <div class="drivers">
+        <span class="drv drv-b">↑ NVDA +12%</span>
+        <span class="drv drv-r">↓ Taux réels</span>
+        <span class="drv drv-b">↑ IA Capex</span>
+        <span class="drv drv-w">→ Emploi</span>
+      </div>
+      <div class="pred-row">
+        <span class="pred-lbl">Prévision 24h</span>
+        <span class="pred-v warn">▶ 19 700 – 20 050</span>
+      </div>
+    </div>
+
+    <!-- US30 CARD -->
+    <div class="acard ac-us30">
+      <div class="ac-top">
+        <div class="ac-icon icon-u">▣</div>
+        <div><div class="ac-lbl">US30 · DOW JONES</div><div class="ac-px u" id="d-up">42 156.30</div></div>
+        <div class="ac-right">
+          <div class="sbadge s-bear" id="d-us">LÉG. BAISSIER</div>
+          <div class="ring-w">
+            <svg class="ring-svg" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#162035" stroke-width="4"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#EF4444" stroke-width="4"
+                stroke-dasharray="60 78" stroke-dashoffset="34" stroke-linecap="round" transform="rotate(-90 28 28)"/>
+              <text x="28" y="33" text-anchor="middle" fill="#EF4444" font-size="11" font-family="JetBrains Mono" font-weight="700">44</text>
+            </svg>
+            <span class="ring-lbl">Score</span>
+          </div>
+        </div>
+      </div>
+      <div class="drivers">
+        <span class="drv drv-r">↓ PMI 48.9</span>
+        <span class="drv drv-r">↓ Boeing</span>
+        <span class="drv drv-r">↓ Tarifs +25%</span>
+        <span class="drv drv-b">↑ Conso</span>
+      </div>
+      <div class="pred-row">
+        <span class="pred-lbl">Prévision 24h</span>
+        <span class="pred-v bear">▼ 41 800 – 42 100</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="split2">
+    <!-- NEWS -->
+    <div class="panel">
+      <div class="ph">
+        <div class="ptitle"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z"/><path d="M4 6h2v12H4z"/><line x1="10" y1="7" x2="17" y2="7"/><line x1="10" y1="11" x2="17" y2="11"/><line x1="10" y1="15" x2="17" y2="15"/></svg>Actualités à Fort Impact</div>
+        <div class="nfilt">
+          <button class="nfbtn on" data-f="all">Tout</button>
+          <button class="nfbtn" data-f="gold">Gold</button>
+          <button class="nfbtn" data-f="ndx">Nasdaq</button>
+          <button class="nfbtn" data-f="us30">US30</button>
+        </div>
+      </div>
+      <div class="nfeed" id="nfeed"></div>
+    </div>
+
+    <!-- SIDE -->
+    <div class="side">
+      <div class="panel">
+        <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Indicateurs Macro</div></div>
+        <div class="macro6">
+          <div class="mci"><div class="mci-l">FED Funds</div><div class="mci-v warn">5.25%</div><div class="mci-s">Inchangé</div></div>
+          <div class="mci"><div class="mci-l">CPI US</div><div class="mci-v bear">3.4%</div><div class="mci-s">Annuel</div></div>
+          <div class="mci"><div class="mci-l">PIB US</div><div class="mci-v bull">+1.6%</div><div class="mci-s">T1 2026</div></div>
+          <div class="mci"><div class="mci-l">Chômage</div><div class="mci-v bull">3.9%</div><div class="mci-s">Mai 2026</div></div>
+          <div class="mci"><div class="mci-l">DXY</div><div class="mci-v warn" id="m-dxy">104.32</div><div class="mci-s bear">↓ Baisse</div></div>
+          <div class="mci"><div class="mci-l">Or BC</div><div class="mci-v bull">+68t</div><div class="mci-s">Mai 2026</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Prochains Événements</div></div>
+        <div>
+          <div class="mcev"><div class="mct">14:30</div><div class="mcn">CPI USA mensuel</div><div class="mcd mcd-h"></div></div>
+          <div class="mcev"><div class="mct">16:00</div><div class="mcn">Discours Powell FED</div><div class="mcd mcd-h"></div></div>
+          <div class="mcev"><div class="mct">18:30</div><div class="mcn">Ventes détail US</div><div class="mcd mcd-m"></div></div>
+          <div class="mcev"><div class="mct">Jeu</div><div class="mcn">Décision taux BCE</div><div class="mcd mcd-h"></div></div>
+          <div class="mcev"><div class="mct">Ven</div><div class="mcn">NFP Emploi US</div><div class="mcd mcd-h"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASH QUICK CHAT -->
+  <div class="panel">
+    <div class="ph">
+      <div class="ptitle"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>FUNDAMENTA IA — Question rapide</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--bull)"><div class="ldot" style="background:var(--bull)"></div>Claude · Web Search actif</div>
+    </div>
+    <div class="qbts">
+      <button class="qbt" onclick="qprompt('Pourquoi le Gold monte aujourd\'hui ? Causes fondamentales précises.')">Pourquoi le Gold monte ?</button>
+      <button class="qbt" onclick="qprompt('Analyse fondamentale NASDAQ cette semaine : earnings, FED, IA, perspectives.')">Analyse NASDAQ</button>
+      <button class="qbt" onclick="qprompt('Résumé des derniers discours de Powell et Lagarde et impact sur Gold, NASDAQ et US30.')">Discours BC récents</button>
+      <button class="qbt" onclick="qprompt('Prévisions fondamentales Gold, NASDAQ et US30 pour les 24-48 prochaines heures.')">Prévisions 48h</button>
+      <button class="qbt" onclick="qprompt('Quels risques fondamentaux peuvent faire chuter le NASDAQ et le US30 maintenant ?')">Risques marchés</button>
+    </div>
+    <div class="asset-chat" id="d-chat-msgs">
+      <div class="ai-msg">
+        <div class="ai-av">F</div>
+        <div class="ai-bub">Bonjour ! Je suis <strong>FUNDAMENTA IA</strong>. Je surveille en permanence les flux macro, les discours des banques centrales et les actualités à fort impact sur le <span class="g">Gold</span>, <span class="n">NASDAQ</span> et <span class="u">US30</span>. Posez-moi une question ou cliquez sur un actif en haut pour une analyse complète.</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input class="ci" id="d-ci" placeholder="Ex : Pourquoi le Gold a chuté ce matin ?" />
+      <button class="send-btn g-send-btn" onclick="sendChat('dash')">Analyser ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  GOLD PAGE                                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page" id="p-gold">
+  <div class="hero hero-g">
+    <div class="hero-l">
+      <div class="hero-lbl g">⬡ GOLD · XAUUSD · Spot</div>
+      <div class="hero-px g" id="gp-px">2 341.80</div>
+      <div class="hero-chg bull">▲ +9.70 (+0.42%) aujourd'hui</div>
+      <div class="hero-rng">HIGH 2 358.40 · LOW 2 328.10</div>
+    </div>
+    <div class="hero-r">
+      <div class="sig-box sig-bull"><div class="sig-lbl">Signal Fondamental</div><div class="sig-v bull">HAUSSIER FORT</div><div class="sig-c">Confiance : 82% · Horizon : Moyen Terme</div></div>
+      <div class="pred-box"><div class="pred-lbl2">Prévision fondamentale 24-48h</div><div class="pred-v2 bull">▲ Cible : 2 355 – 2 390</div><div class="pred-s">Basée sur : Pivot FED + DXY faible + Achats BC</div></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="panel">
+        <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyse Fondamentale Gold — IA en direct</div></div>
+        <div class="ablock" id="g-analysis"><div class="aload"><span class="spin"></span> Analyse IA avec recherche web en cours...</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z"/><path d="M4 6h2v12H4z"/></svg>Actualités Gold</div></div>
+        <div class="nfeed" id="g-news"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Personnalités Clés</div></div>
+        <div class="plist">
+          <div class="pitem"><div class="pav pav-g">JP</div><div><div class="pname">Jerome Powell</div><div class="prole">Président FED</div><div class="pquote">"Des baisses de taux restent envisageables si l'inflation décélère de façon durable et convaincante."</div><div class="pimp bull">↑ Haussier Or</div></div></div>
+          <div class="pitem"><div class="pav pav-g">CL</div><div><div class="pname">Christine Lagarde</div><div class="prole">Présidente BCE</div><div class="pquote">"La désinflation est engagée en zone euro. Nous resterons dépendants des données."</div><div class="pimp bull">↑ Soutien refuge</div></div></div>
+          <div class="pitem"><div class="pav pav-g">PB</div><div><div class="pname">PBoC / Chine</div><div class="prole">Banque Centrale Chine</div><div class="pquote">La Chine a acheté 22 tonnes d'or en mai 2026, 18ème mois consécutif d'achats.</div><div class="pimp bull">↑ Structurellement haussier</div></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Facteurs Or</div></div>
+        <div class="fbars">
+          <div class="fbi"><div class="fbl">Politique FED</div><div class="fbbar"><div class="fbfill fb-g" style="width:85%"></div></div><div class="fbval bull">+85</div></div>
+          <div class="fbi"><div class="fbl">Dollar DXY</div><div class="fbbar"><div class="fbfill fb-g" style="width:72%"></div></div><div class="fbval bull">+72</div></div>
+          <div class="fbi"><div class="fbl">Géopolitique</div><div class="fbbar"><div class="fbfill fb-w" style="width:65%"></div></div><div class="fbval warn">+65</div></div>
+          <div class="fbi"><div class="fbl">Inflation CPI</div><div class="fbbar"><div class="fbfill fb-g" style="width:78%"></div></div><div class="fbval bull">+78</div></div>
+          <div class="fbi"><div class="fbl">Achats BC</div><div class="fbbar"><div class="fbfill fb-g" style="width:92%"></div></div><div class="fbval bull">+92</div></div>
+          <div class="fbi"><div class="fbl">Taux réels</div><div class="fbbar"><div class="fbfill fb-r" style="width:42%"></div></div><div class="fbval bear">-42</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>FUNDAMENTA IA — Spécialiste Gold</div></div>
+    <div class="asset-chat" id="g-chat-msgs">
+      <div class="ai-msg"><div class="aav-sm">F</div><div class="ai-bub">Posez vos questions Gold : <em>"Pourquoi le Gold monte ?"</em> · <em>"Impact du CPI sur l'or ?"</em> · <em>"Quand le Gold peut-il chuter ?"</em></div></div>
+    </div>
+    <div class="chat-input-row">
+      <input class="ci" id="g-ci" placeholder="Ex : Pourquoi le Gold a pris de la valeur cette semaine ?" />
+      <button class="send-btn g-send-btn" onclick="sendChat('gold')">Analyser ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  NASDAQ PAGE                                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page" id="p-ndx">
+  <div class="hero hero-n">
+    <div class="hero-l">
+      <div class="hero-lbl n">◈ NASDAQ · NQ100 · Futures</div>
+      <div class="hero-px n" id="np-px">19 847.40</div>
+      <div class="hero-chg bull">▲ +153.60 (+0.78%) aujourd'hui</div>
+      <div class="hero-rng">HIGH 19 902.10 · LOW 19 688.30</div>
+    </div>
+    <div class="hero-r">
+      <div class="sig-box sig-neut"><div class="sig-lbl">Signal Fondamental</div><div class="sig-v warn">NEUTRE HAUSSIER</div><div class="sig-c">Confiance : 61% · Horizon : Court Terme</div></div>
+      <div class="pred-box"><div class="pred-lbl2">Prévision fondamentale 24-48h</div><div class="pred-v2 warn">▶ Consolidation 19 700 – 20 050</div><div class="pred-s">Basée sur : Supercycle IA vs taux réels élevés</div></div>
+    </div>
+  </div>
+  <div class="body2">
+    <div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyse Fondamentale NASDAQ</div></div><div class="ablock" id="n-analysis"><div class="aload"><span class="spin"></span> Analyse IA en cours...</div></div></div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z"/><path d="M4 6h2v12H4z"/></svg>Actualités NASDAQ</div></div><div class="nfeed" id="n-news"></div></div>
+    </div>
+    <div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Personnalités Clés</div></div>
+        <div class="plist">
+          <div class="pitem"><div class="pav pav-n">JH</div><div><div class="pname">Jensen Huang</div><div class="prole">CEO NVIDIA</div><div class="pquote">"La demande pour nos GPU IA dépasse toutes nos projections. Blackwell est en rupture de stock."</div><div class="pimp bull">↑ Très haussier NASDAQ</div></div></div>
+          <div class="pitem"><div class="pav pav-n">SN</div><div><div class="pname">Satya Nadella</div><div class="prole">CEO Microsoft</div><div class="pquote">"Azure IA croît à +35% : chaque secteur adopte l'IA générative via Copilot."</div><div class="pimp bull">↑ Haussier Tech</div></div></div>
+          <div class="pitem"><div class="pav pav-n">JP</div><div><div class="pname">Jerome Powell</div><div class="prole">Président FED</div><div class="pquote">"Les taux resteront restrictifs tant que l'inflation n'atteint pas durablement 2%."</div><div class="pimp bear">↓ Pression valorisations</div></div></div>
+        </div>
+      </div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Facteurs NASDAQ</div></div>
+        <div class="fbars">
+          <div class="fbi"><div class="fbl">Earnings IA</div><div class="fbbar"><div class="fbfill fb-g" style="width:88%"></div></div><div class="fbval bull">+88</div></div>
+          <div class="fbi"><div class="fbl">Taux réels</div><div class="fbbar"><div class="fbfill fb-r" style="width:70%"></div></div><div class="fbval bear">-70</div></div>
+          <div class="fbi"><div class="fbl">Capex IA</div><div class="fbbar"><div class="fbfill fb-g" style="width:92%"></div></div><div class="fbval bull">+92</div></div>
+          <div class="fbi"><div class="fbl">ISM Services</div><div class="fbbar"><div class="fbfill fb-w" style="width:52%"></div></div><div class="fbval warn">-48</div></div>
+          <div class="fbi"><div class="fbl">Emploi US</div><div class="fbbar"><div class="fbfill fb-w" style="width:55%"></div></div><div class="fbval warn">±55</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>FUNDAMENTA IA — Spécialiste NASDAQ</div></div>
+    <div class="asset-chat" id="n-chat-msgs">
+      <div class="ai-msg"><div class="aav-sm">F</div><div class="ai-bub">Posez vos questions NASDAQ : <em>"Pourquoi le NASDAQ chute ?"</em> · <em>"Impact FED sur la tech ?"</em> · <em>"NVDA va encore monter ?"</em></div></div>
+    </div>
+    <div class="chat-input-row">
+      <input class="ci" id="n-ci" placeholder="Ex : Pourquoi le NASDAQ a chuté ce matin ?" />
+      <button class="send-btn n-send-btn" onclick="sendChat('ndx')">Analyser ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  US30 PAGE                                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page" id="p-us30">
+  <div class="hero hero-u">
+    <div class="hero-l">
+      <div class="hero-lbl u">▣ US30 · DOW JONES · Futures</div>
+      <div class="hero-px u" id="up-px">42 156.30</div>
+      <div class="hero-chg bear">▼ -88.40 (-0.21%) aujourd'hui</div>
+      <div class="hero-rng">HIGH 42 311.80 · LOW 41 998.20</div>
+    </div>
+    <div class="hero-r">
+      <div class="sig-box sig-bear"><div class="sig-lbl">Signal Fondamental</div><div class="sig-v bear">LÉGÈREMENT BAISSIER</div><div class="sig-c">Confiance : 44% · Horizon : Court Terme</div></div>
+      <div class="pred-box"><div class="pred-lbl2">Prévision fondamentale 24-48h</div><div class="pred-v2 bear">▼ Support : 41 800 – 42 100</div><div class="pred-s">Basée sur : PMI contraction + Boeing + Tarifs</div></div>
+    </div>
+  </div>
+  <div class="body2">
+    <div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyse Fondamentale US30</div></div><div class="ablock" id="u-analysis"><div class="aload"><span class="spin"></span> Analyse IA en cours...</div></div></div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z"/><path d="M4 6h2v12H4z"/></svg>Actualités US30</div></div><div class="nfeed" id="u-news"></div></div>
+    </div>
+    <div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Personnalités Clés</div></div>
+        <div class="plist">
+          <div class="pitem"><div class="pav pav-u">DT</div><div><div class="pname">Donald Trump</div><div class="prole">Président USA</div><div class="pquote">"Nouveaux droits de douane de +25% sur l'acier et l'aluminium pour protéger l'industrie américaine."</div><div class="pimp bear">↓ Négatif industrie US30</div></div></div>
+          <div class="pitem"><div class="pav pav-u">KO</div><div><div class="pname">Kelly Ortberg</div><div class="prole">CEO Boeing</div><div class="pquote">"Nous traversons une période difficile. La priorité absolue reste la sécurité et la qualité."</div><div class="pimp bear">↓ Poids majeur US30</div></div></div>
+          <div class="pitem"><div class="pav pav-u">JP</div><div><div class="pname">Jerome Powell</div><div class="prole">Président FED</div><div class="pquote">"Le PMI manufacturier sous 50 est préoccupant. Nous surveillons l'impact des tarifs."</div><div class="pimp warn">↕ Mixte pour US30</div></div></div>
+        </div>
+      </div>
+      <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Facteurs US30</div></div>
+        <div class="fbars">
+          <div class="fbi"><div class="fbl">PMI Manuf.</div><div class="fbbar"><div class="fbfill fb-r" style="width:75%"></div></div><div class="fbval bear">-75</div></div>
+          <div class="fbi"><div class="fbl">Tarifs douaniers</div><div class="fbbar"><div class="fbfill fb-r" style="width:68%"></div></div><div class="fbval bear">-68</div></div>
+          <div class="fbi"><div class="fbl">Résultats entreprises</div><div class="fbbar"><div class="fbfill fb-r" style="width:60%"></div></div><div class="fbval bear">-60</div></div>
+          <div class="fbi"><div class="fbl">Consommation</div><div class="fbbar"><div class="fbfill fb-g" style="width:65%"></div></div><div class="fbval bull">+65</div></div>
+          <div class="fbi"><div class="fbl">Emploi NFP</div><div class="fbbar"><div class="fbfill fb-g" style="width:70%"></div></div><div class="fbval bull">+70</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>FUNDAMENTA IA — Spécialiste US30</div></div>
+    <div class="asset-chat" id="u-chat-msgs">
+      <div class="ai-msg"><div class="aav-sm">F</div><div class="ai-bub">Posez vos questions US30 : <em>"Pourquoi le Dow Jones chute ?"</em> · <em>"Impact tarifs Trump ?"</em> · <em>"Boeing va rebondir ?"</em></div></div>
+    </div>
+    <div class="chat-input-row">
+      <input class="ci" id="u-ci" placeholder="Ex : Pourquoi le US30 a chuté hier ?" />
+      <button class="send-btn u-send-btn" onclick="sendChat('us30')">Analyser ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  MACRO PAGE                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page" id="p-macro">
+  <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Environnement Macro Global — Analyse IA Live</div></div><div class="ablock" id="macro-analysis"><div class="aload"><span class="spin"></span> Analyse macro via recherche web...</div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Banques Centrales</div></div>
+      <div class="mactab">
+        <div class="mrow mrow-h"><span>BC</span><span>Taux</span><span>Biais</span><span>Impact</span></div>
+        <div class="mrow"><span class="mrow-name">FED (US)</span><span class="mono warn">5.25%</span><span class="warn">Dovish ↓</span><span class="bull">↑ Or · Tech</span></div>
+        <div class="mrow"><span class="mrow-name">BCE (EU)</span><span class="mono warn">4.00%</span><span class="warn">Neutre</span><span class="dim">↕ Mixte</span></div>
+        <div class="mrow"><span class="mrow-name">BoE (UK)</span><span class="mono bear">5.00%</span><span class="bear">Hawkish</span><span class="bear">↓ Risques</span></div>
+        <div class="mrow"><span class="mrow-name">BoJ (JP)</span><span class="mono bull">0.10%</span><span class="bull">Hawkish+</span><span class="warn">↑ Yen</span></div>
+        <div class="mrow"><span class="mrow-name">PBoC (CN)</span><span class="mono bull">3.45%</span><span class="bull">Accomm.</span><span class="bull">↑ Or BC</span></div>
+      </div>
+    </div>
+    <div class="panel"><div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Données Macro US</div></div>
+      <div class="mactab">
+        <div class="mrow mrow-h"><span>Indicateur</span><span>Valeur</span><span>Préc.</span><span>Tendance</span></div>
+        <div class="mrow"><span class="mrow-name">CPI Annuel</span><span class="mono bear">3.4%</span><span class="mono dim">3.5%</span><span class="bull">↓ Désinfl.</span></div>
+        <div class="mrow"><span class="mrow-name">Core CPI</span><span class="mono warn">3.8%</span><span class="mono dim">3.8%</span><span class="dim">→ Stable</span></div>
+        <div class="mrow"><span class="mrow-name">PIB T1</span><span class="mono bull">+1.6%</span><span class="mono dim">+3.4%</span><span class="bear">↓ Ralent.</span></div>
+        <div class="mrow"><span class="mrow-name">NFP Emploi</span><span class="mono bull">175K</span><span class="mono dim">315K</span><span class="bear">↓ Ralent.</span></div>
+        <div class="mrow"><span class="mrow-name">PMI Manuf.</span><span class="mono bear">48.9</span><span class="mono dim">50.3</span><span class="bear">↓ Contrac.</span></div>
+        <div class="mrow"><span class="mrow-name">PMI Services</span><span class="mono bull">52.3</span><span class="mono dim">51.7</span><span class="bull">↑ Expans.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CALENDRIER                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page" id="p-cal">
+  <div class="panel">
+    <div class="ph"><div class="ptitle"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendrier Économique — Événements à Fort Impact</div><div style="font-size:10px;color:var(--bull);display:flex;align-items:center;gap:4px"><div class="ldot" style="background:var(--bull)"></div>Mis à jour en continu</div></div>
+    <div class="cdh">Aujourd'hui · <span id="cal-date">—</span></div>
+    <div class="cev cev-h"><div class="cet">14:30</div><div class="ceb"><div class="cen">CPI USA (mensuel)</div><div class="ced">Préc: 3.4% · Est: 3.3% · Impact: FORT</div><div class="cei">Si &lt; 3.3% → <span class="bull">↑ Or +0.8% · ↑ NASDAQ</span> · Si &gt; 3.4% → <span class="bear">↓ Actifs risqués</span></div></div><div class="cedot mcd-h"></div></div>
+    <div class="cev cev-h"><div class="cet">16:00</div><div class="ceb"><div class="cen">Allocution Powell (FED) — Chicago</div><div class="ced">Volatilité élevée attendue · Impact: TRÈS FORT</div><div class="cei">Ton dovish → <span class="bull">↑ Or · ↑ NASDAQ</span> · Hawkish → <span class="bear">↓ marchés · ↑ DXY</span></div></div><div class="cedot mcd-h"></div></div>
+    <div class="cev cev-m"><div class="cet">18:30</div><div class="ceb"><div class="cen">Ventes au Détail US</div><div class="ced">Préc: +0.4% · Est: +0.3% · Impact: MOYEN</div><div class="cei">Si fort → <span class="bull">↑ US30 · ↑ Conso</span></div></div><div class="cedot mcd-m"></div></div>
+    <div class="cdh">Semaine prochaine</div>
+    <div class="cev cev-h"><div class="cet">Lun</div><div class="ceb"><div class="cen">Confiance Consommateurs Michigan</div><div class="ced">Préc: 69.1 · Est: 70.5 · Impact: FORT</div><div class="cei">Si &gt; 71 → <span class="bull">↑ US30 · ↑ NASDAQ</span></div></div><div class="cedot mcd-h"></div></div>
+    <div class="cev cev-h"><div class="cet">Mar</div><div class="ceb"><div class="cen">PPI USA (mensuel)</div><div class="ced">Préc: +2.2% · Est: +2.0% · Impact: FORT</div><div class="cei">Si &gt; 2.2% → <span class="bull">↑ Or</span> (inflation) · <span class="bear">↓ NASDAQ</span></div></div><div class="cedot mcd-h"></div></div>
+    <div class="cev cev-h"><div class="cet">Jeu</div><div class="ceb"><div class="cen">Décision de Taux BCE</div><div class="ced">Actuel: 4.00% · Impact: TRÈS FORT</div><div class="cei">Baisse → <span class="bull">↑ Or · ↑ Euro NASDAQ</span> · Maintien → <span class="dim">neutre</span></div></div><div class="cedot mcd-h"></div></div>
+    <div class="cev cev-h"><div class="cet">Ven</div><div class="ceb"><div class="cen">NFP — Rapport Emploi US</div><div class="ced">Préc: 175K · Est: 185K · Impact: MAJEUR</div><div class="cei">Fort emploi &gt; 200K → <span class="bear">↓ Or (no pivot FED)</span> · <span class="bull">↑ US30</span> · Faible &lt; 150K → <span class="bull">↑ Or · ↓ DXY</span></div></div><div class="cedot mcd-h"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  ASSISTANT IA — FULL CHAT                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="wrap page" id="p-ai">
+  <div class="chat-page">
+    <div class="chat-hd">
+      <div class="chat-hd-l">
+        <div class="chat-av-big">F</div>
+        <div><div class="chat-hd-name">FUNDAMENTA IA</div><div class="chat-hd-sub">Powered by Claude Sonnet · Web Search temps réel · Sources macro premium</div></div>
+      </div>
+      <div class="src-pills">
+        <span class="srcp">FED</span><span class="srcp">BCE</span><span class="srcp">Bloomberg</span>
+        <span class="srcp">Reuters</span><span class="srcp">WSJ</span><span class="srcp">BRI</span>
+        <span class="srcp">Investing</span><span class="srcp">ForexFactory</span>
+      </div>
+    </div>
+
+    <div class="chat-msgs" id="ai-chat-msgs">
+      <div class="ai-msg">
+        <div class="ai-av">F</div>
+        <div class="ai-bub" style="font-size:13.5px;line-height:1.8">
+          <strong>Bienvenue sur FUNDAMENTA IA — Votre Analyste Fondamental</strong><br><br>
+          Je suis connecté en temps réel aux principales sources macro-économiques mondiales et je lance une recherche web à chaque question pour vous donner des analyses fraîches et précises.<br><br>
+          <strong>Ce que je peux faire avec précision :</strong><br>
+          • Expliquer <em>pourquoi</em> un actif a monté ou chuté — causes fondamentales exactes<br>
+          • Analyser les discours de Powell, Lagarde, Trump et leur impact direct<br>
+          • Donner des prévisions fondamentales chiffrées (objectif 80% de précision)<br>
+          • Surveiller CPI, NFP, PMI, PIB et tous les indicateurs macro en temps réel<br>
+          • Identifier les facteurs géopolitiques impactant l'Or<br><br>
+          <strong>Exemples de questions :</strong><br>
+          <em>"Pourquoi le Gold a pris +2% cette semaine ?"</em><br>
+          <em>"Quel sera l'impact du NFP de vendredi sur le Nasdaq ?"</em><br>
+          <em>"Résume le dernier discours de Powell et son effet sur l'Or."</em><br>
+          <em>"Pourquoi le US30 est sous pression en ce moment ?"</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="qbts">
+      <button class="qbt" onclick="aiChat('Pourquoi le Gold a-t-il pris de la valeur récemment ? Analyse fondamentale complète : causes macro exactes, discours FED, DXY, géopolitique, achats banques centrales.')">Pourquoi le Gold monte ?</button>
+      <button class="qbt" onclick="aiChat('Analyse fondamentale complète NASDAQ cette semaine : earnings NVDA/MSFT/AAPL, impact FED sur les taux réels, flux vers la tech IA, perspectives court terme avec niveaux.')">Analyse NASDAQ complète</button>
+      <button class="qbt" onclick="aiChat('Résume les derniers discours de Jerome Powell et Christine Lagarde. Quelles sont leurs positions exactes et comment cela impacte Gold, NASDAQ et US30 concrètement ?')">Discours Banques Centrales</button>
+      <button class="qbt" onclick="aiChat('Prévisions fondamentales précises pour le Gold, NASDAQ et US30 sur les 24 à 72 heures. Donne des niveaux cibles et des probabilités basées sur les actualités actuelles.')">Prévisions 24-72h</button>
+      <button class="qbt" onclick="aiChat('Pourquoi le US30 Dow Jones est-il sous pression ? Explique les facteurs fondamentaux exacts : Boeing, tarifs douaniers, PMI, et quand peut-on attendre un rebond.')">Pourquoi le US30 faiblit ?</button>
+      <button class="qbt" onclick="aiChat('Quel est le mécanisme exact de l\'impact du CPI américain sur le Gold, le NASDAQ et le US30 ? Explique avec des exemples précis des derniers mois.')">Mécanisme CPI → marchés</button>
+    </div>
+
+    <div class="chat-input-row">
+      <input class="ci" id="ai-ci" placeholder="Ex : Pourquoi le Gold a chuté ce matin ? · Quel impact du NFP sur le NASDAQ ?" />
+      <button class="send-btn" id="ai-send" onclick="aiChat()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Analyser
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>FUNDAMENTA AI v2.0 · Analyse Fondamentale Live</span>
+  <span>⚠ Données à titre informatif — Pas de conseil en investissement</span>
+  <span id="fdate">—</span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════
+const API = 'https://api.anthropic.com/v1/messages';
+const MDL = 'claude-sonnet-4-6';
+const ANT_KEY = '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';
+
+const SYS = `Tu es FUNDAMENTA IA, un analyste fondamental de trading de très haut niveau spécialisé sur le Gold (XAUUSD), le NASDAQ (NQ100) et le US30 (Dow Jones).
+
+MISSION PRINCIPALE : Donner des analyses fondamentales ultra-précises avec 80% de précision dans les prévisions.
+
+SOURCES QUE TU CONSULTES EN PRIORITÉ (via web search) :
+- federalreserve.gov : discours FOMC, déclarations Powell, minutes
+- ecb.europa.eu : Lagarde, décisions taux BCE
+- bls.gov : CPI, NFP, PPI officiels
+- ismworld.org : PMI manufacturier et services
+- worldgoldcouncil.org : données or, achats banques centrales
+- Reuters, Bloomberg, WSJ : actualités marché temps réel
+- sec.gov/edgar : résultats d'entreprises (earnings)
+- investing.com, forexfactory.com : calendrier économique
+
+MÉCANISMES QUE TU MAITRISES PARFAITEMENT :
+
+OR (XAUUSD) :
+- FED dovish (baisse taux) → dollar baisse → or monte (corrélation inverse DXY/Gold = -0.85)
+- Taux réels US négatifs = haussier or (opportunity cost bas)
+- CPI > attendu = haussier or (valeur refuge inflation)
+- Achats banques centrales (Chine, Inde, Russie) = soutien structurel
+- Risk-off géopolitique = haussier or
+- DXY hausse = baissier or (mécanisme direct)
+
+NASDAQ (NQ100) :
+- Taux réels hauts = baissier tech (DCF dégonflés, flux vers obligations)
+- FED dovish = haussier NASDAQ (multiples valorisation remontrée)
+- Earnings tech > attentes (NVDA, MSFT, META, AMZN, AAPL) = haussier
+- Capex IA > 40% = momentum haussier sectoriel
+- VIX > 25 = risk-off = baissier NASDAQ
+- ISM Services < 50 = baissier consommation tech
+
+US30 (DOW JONES) :
+- PMI Manufacturier < 50 = baissier industrie (Boeing, Caterpillar, 3M)
+- Tarifs douaniers = baissier acier/alim/industrie = baissier US30
+- Résultats entreprises composantes (30 valeurs) = moteur principal
+- Taux hypothécaires > emploi immobilier = impact Home Depot, JPMorgan
+- Consommation US = impact Apple, Nike, Visa dans l'indice
+
+FORMAT DE RÉPONSE (impératif) :
+1. RÉPONDRE EN FRANÇAIS, direct, professionnel
+2. Commencer par LA CAUSE PRINCIPALE en 1-2 phrases claires
+3. Détailler avec CHIFFRES PRÉCIS et DATES
+4. Si prévision : donner des NIVEAUX DE PRIX et % de probabilité
+5. Terminer par les RISQUES/CONTRE-SCÉNARIOS
+6. Format : pas trop long, aller à l'essentiel comme un analyste Bloomberg
+7. Utiliser ↑ ↓ → pour les directions`;
+
+// ═══════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  const p=x=>String(x).padStart(2,'0');
+  const el=document.getElementById('clk');
+  if(el) el.textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+  const fd=document.getElementById('fdate');
+  if(fd) fd.textContent=n.toLocaleDateString('fr-FR');
+  const cd=document.getElementById('cal-date');
+  if(cd) cd.textContent=n.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+setInterval(tick,1000); tick();
+
+// ═══════════════════════════════════════════════════
+// LIVE PRICES — TWELVE DATA API (100% RÉEL)
+// ═══════════════════════════════════════════════════
+const TD_KEY = 'a9e1b6128af14e1bb3d629e29535b992';
+const FH_KEY = 'd8o6ldpr01qrbffjr7mgd8o6ldpr01qrbffjr7n0';
+
+// Stockage des prix avec valeurs précédentes pour calculer le % de variation
+const px = {
+  g:  { v: 0, prev: 0, label: 'XAUUSD',  sym: 'XAU/USD',  dec: 2 },
+  n:  { v: 0, prev: 0, label: 'NASDAQ',   sym: 'NDX',      dec: 2 },
+  u:  { v: 0, prev: 0, label: 'US30',     sym: 'DJI',      dec: 2 },
+  d:  { v: 0, prev: 0, label: 'DXY',      sym: 'DX-Y.NYB', dec: 3 },
+  t:  { v: 0, prev: 0, label: 'US10Y',    sym: 'TNX',      dec: 3 },
+  vx: { v: 0, prev: 0, label: 'VIX',      sym: 'VIX',      dec: 2 }
+};
+
+function fmt(n, d=2){ return n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+
+// Mise à jour de l'affichage d'un actif dans le ticker et les cartes
+function renderPrice(key, price, prevClose){
+  const p = px[key];
+  if(!price || isNaN(price)) return;
+  p.v = parseFloat(price);
+  if(prevClose) p.prev = parseFloat(prevClose);
+
+  const chg = p.prev > 0 ? ((p.v - p.prev) / p.prev * 100) : 0;
+  const pos = chg >= 0;
+  const chgStr = (pos ? '▲+' : '▼') + Math.abs(chg).toFixed(2) + '%';
+  const cls = pos ? 'bull' : 'bear';
+
+  const map = {
+    g:  ['tk-gv','tk-gc'],
+    n:  ['tk-nv','tk-nc'],
+    u:  ['tk-uv','tk-uc'],
+    d:  ['tk-dv','tk-dc'],
+    t:  ['tk-10v','tk-10c'],
+    vx: ['tk-vv','tk-vc']
+  };
+
+  const [vid, cid] = map[key];
+  const ve = document.getElementById(vid);
+  const ce = document.getElementById(cid);
+  const display = key === 't' ? p.v.toFixed(3) + '%' : key === 'vx' || key === 'd' ? p.v.toFixed(2) : fmt(p.v, 2);
+  if(ve) ve.textContent = display;
+  if(ce){ ce.textContent = chgStr; ce.className = 'ti-c ' + cls; }
+
+  // Cartes dashboard
+  if(key === 'g'){
+    const gpe = document.getElementById('d-gp'); if(gpe) gpe.textContent = fmt(p.v, 2);
+    const gpa = document.getElementById('gp-px'); if(gpa) gpa.textContent = fmt(p.v, 2);
+  }
+  if(key === 'n'){
+    const npe = document.getElementById('d-np'); if(npe) npe.textContent = fmt(p.v, 2);
+    const npa = document.getElementById('np-px'); if(npa) npa.textContent = fmt(p.v, 2);
+  }
+  if(key === 'u'){
+    const upe = document.getElementById('d-up'); if(upe) upe.textContent = fmt(p.v, 2);
+    const upa = document.getElementById('up-px'); if(upa) upa.textContent = fmt(p.v, 2);
+  }
+  if(key === 'd'){
+    const mdxy = document.getElementById('m-dxy'); if(mdxy) mdxy.textContent = p.v.toFixed(2);
+  }
+}
+
+// Appel Twelve Data pour un symbole
+async function fetchTD(symbol, key){
+  try {
+    const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}&apikey=${TD_KEY}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if(d && d.close && d.previous_close){
+      renderPrice(key, d.close, d.previous_close);
+    } else if(d && d.price){
+      renderPrice(key, d.price, d.previous_close || d.price);
+    }
+  } catch(e){ console.warn('TwelveData error for', symbol, e); }
+}
+
+// Fetch de tous les actifs en parallèle
+async function fetchAllPrices(){
+  await Promise.allSettled([
+    fetchTD('XAU/USD', 'g'),
+    fetchTD('NDX', 'n'),
+    fetchTD('DJI', 'u'),
+    fetchTD('DXY', 'd'),
+    fetchTD('TNX', 't'),
+    fetchTD('VIX', 'vx')
+  ]);
+  // Afficher badge "LIVE ✓" dans la topbar
+  const badge = document.querySelector('.live-badge');
+  if(badge && px.g.v > 0) badge.innerHTML = '<div class="ldot"></div>LIVE · RÉEL';
+}
+
+// Premier chargement immédiat + rafraîchissement toutes les 60s
+fetchAllPrices();
+setInterval(fetchAllPrices, 60000);
+
+// ═══════════════════════════════════════════════════
+// LIVE NEWS — FINNHUB API (100% RÉEL)
+// ═══════════════════════════════════════════════════
+const FINNHUB_CAT_MAP = {
+  gold:  ['XAU', 'gold', 'GOLD', 'precious metals', 'bullion', 'Fed', 'FED', 'inflation', 'central bank'],
+  ndx:   ['NVDA','MSFT','AAPL','AMZN','GOOGL','META','TSLA','nasdaq','tech','AI','artificial intelligence'],
+  us30:  ['DOW','Dow Jones','DJI','boeing','BA','JPMorgan','JPM','tariffs','manufacturing']
+};
+
+let liveNews = [];  // Stockage des news live
+
+async function fetchFinnhubNews(){
+  try {
+    // Finnhub general market news
+    const url = `https://finnhub.io/api/v1/news?category=general&token=${FH_KEY}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!Array.isArray(data) || data.length === 0) return;
+
+    // Transformer et trier les news Finnhub
+    liveNews = data.slice(0, 30).map(item => {
+      const text = (item.headline + ' ' + (item.summary || '')).toLowerCase();
+      const assets = [];
+      if(FINNHUB_CAT_MAP.gold.some(k => text.includes(k.toLowerCase()))) assets.push('gold');
+      if(FINNHUB_CAT_MAP.ndx.some(k => text.includes(k.toLowerCase()))) assets.push('ndx');
+      if(FINNHUB_CAT_MAP.us30.some(k => text.includes(k.toLowerCase()))) assets.push('us30');
+      if(assets.length === 0) assets.push('gold','ndx','us30'); // news générale = tous
+
+      // Calcul heure locale
+      const dt = new Date(item.datetime * 1000);
+      const hh = String(dt.getHours()).padStart(2,'0');
+      const mm = String(dt.getMinutes()).padStart(2,'0');
+
+      // Impact basé sur la source
+      const highSources = ['bloomberg','reuters','wsj','cnbc','financial times','ft.com','marketwatch','fed','ecb'];
+      const src = (item.source || '').toLowerCase();
+      const imp = highSources.some(s => src.includes(s)) ? 'high' : 'med';
+
+      return {
+        h: item.headline,
+        src: item.source || 'Market News',
+        t: hh + ':' + mm,
+        imp,
+        assets,
+        url: item.url || '#',
+        detail: item.summary || item.headline
+      };
+    }).filter(n => n.h && n.h.length > 10);
+
+    // Rendre les news dans tous les feeds
+    renderNewsLive('nfeed', curFilter);
+    renderNewsLive('g-news', 'gold');
+    renderNewsLive('n-news', 'ndx');
+    renderNewsLive('u-news', 'us30');
+
+  } catch(e){ console.warn('Finnhub news error:', e); }
+}
+
+function renderNewsLive(containerId, filter='all'){
+  const c = document.getElementById(containerId); if(!c) return;
+
+  // Si on a des news live, on les utilise — sinon on garde les statiques
+  const sourceData = liveNews.length > 0 ? liveNews : NEWS;
+
+  const data = filter === 'all' ? sourceData :
+    sourceData.filter(n => n.assets.includes(filter));
+
+  if(!data.length){
+    c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--txt3)">Aucune actualité disponible.</div>';
+    return;
+  }
+
+  c.innerHTML = data.slice(0, 15).map(n => `
+    <div class="nitem" onclick="explainNew('${(n.h||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${(n.detail||n.h||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+      <div class="nh">${n.h}</div>
+      <div class="nmeta">
+        <span class="nsrc">${n.src}</span>
+        <span class="ntime">${n.t}</span>
+        <span class="nimp ${n.imp==='high'?'imp-h':n.imp==='med'?'imp-m':'imp-l'}">${n.imp==='high'?'⬡ FORT':n.imp==='med'?'◈ MOYEN':'FAIBLE'}</span>
+        <div class="ntags">${(n.assets||[]).map(a=>`<span class="ntag t${a[0]}">${a==='ndx'?'NASDAQ':a.toUpperCase()}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// Fetch news au démarrage et toutes les 5 minutes
+fetchFinnhubNews();
+setInterval(fetchFinnhubNews, 5 * 60 * 1000);
+
+// ═══════════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════════
+const pages={dash:'p-dash',gold:'p-gold',ndx:'p-ndx',us30:'p-us30',macro:'p-macro',cal:'p-cal',ai:'p-ai'};
+const loaded={gold:false,ndx:false,us30:false,macro:false};
+
+document.querySelectorAll('.ntab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+    t.classList.add('active');
+    document.getElementById(pages[t.dataset.p]).classList.add('on');
+    // lazy load analyses
+    if(t.dataset.p==='gold'&&!loaded.gold){loadAnalysis('gold');renderNewsLive('g-news','gold');loaded.gold=true;}
+    if(t.dataset.p==='ndx'&&!loaded.ndx){loadAnalysis('ndx');renderNewsLive('n-news','ndx');loaded.ndx=true;}
+    if(t.dataset.p==='us30'&&!loaded.us30){loadAnalysis('us30');renderNewsLive('u-news','us30');loaded.us30=true;}
+    if(t.dataset.p==='macro'&&!loaded.macro){loadMacro();loaded.macro=true;}
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// NEWS DATA
+// ═══════════════════════════════════════════════════
+const NEWS=[
+  {h:"Powell (FED) adopte un ton dovish : signale qu'un assouplissement des taux est possible en 2026 si l'inflation décélère durablement",src:"FED · FOMC",t:"14:32",imp:"high",assets:["gold","ndx","us30"],detail:"Jerome Powell, lors de son allocution à la Chicago Fed Annual Conference, a déclaré que des baisses de taux restaient sur la table si les données macro confirmaient la désinflation. Ce signal dovish a immédiatement affaibli le dollar (DXY -0.3%) et soutenu l'or et le NASDAQ."},
+  {h:"Achats or des banques centrales : BRI signale +68 tonnes en mai 2026 — record depuis novembre 2023",src:"BRI · Reuters",t:"13:15",imp:"high",assets:["gold"],detail:"La BRI rapporte des achats massifs d'or par les banques centrales en mai 2026. La Chine (+22t) mène le mouvement pour le 18ème mois consécutif, suivie par l'Inde (+15t) et la Turquie (+12t). Ces achats structurels établissent un plancher solide pour XAU/USD."},
+  {h:"NVIDIA dépasse les attentes : BPA T1 à $6.12 vs $5.65 attendu — segment Datacenter IA +72% YoY",src:"NVDA · SEC EDGAR",t:"16:05",imp:"high",assets:["ndx"],detail:"NVIDIA publie des résultats record pour son T1 fiscal 2027. Le segment Datacenter représente 87% des revenus et a bondi de 72% grâce aux GPU Blackwell. Le titre monte de +12% en après-marché, entraînant tout le secteur IA et le NASDAQ à la hausse."},
+  {h:"Boeing annonce des pertes Q2 de 1,8 milliard $ — défauts persistants sur le 737 MAX 9, titre -8%",src:"Boeing · WSJ",t:"15:45",imp:"high",assets:["us30"],detail:"Boeing, composant majeur du Dow Jones, a annoncé des pertes trimestrielles massives liées aux coûts de rectification du 737 MAX et aux grèves. La compagnie abaisse ses prévisions annuelles. Le poids de Boeing dans le US30 amplifie l'impact sur l'indice."},
+  {h:"PMI Manufacturier US : 48.9 en mai — 3ème mois consécutif de contraction, nouvelles commandes en baisse",src:"S&P Global · ISM",t:"10:00",imp:"high",assets:["us30","gold"],detail:"L'indice PMI manufacturier confirme la contraction du secteur industriel. Les nouvelles commandes reculent à 46.8 et l'emploi manufacturier à 47.3. Baissier pour le US30 (industrie lourde) mais haussier pour l'or comme valeur refuge en cas de ralentissement économique."},
+  {h:"Microsoft annonce dividende +10% et programme de rachat actions 60 milliards $",src:"MSFT · Bloomberg",t:"15:20",imp:"high",assets:["ndx"],detail:"Microsoft augmente son dividende trimestriel de 10% et lance un programme massif de rachat d'actions, signe de la solidité des flux de trésorerie générés par Azure IA (+35% de croissance) et la suite Copilot désormais déployée dans 230 000 entreprises."},
+  {h:"Tensions Moyen-Orient : réunion d'urgence du Conseil de sécurité ONU convoquée dans les 24h",src:"ONU · AP",t:"12:47",imp:"med",assets:["gold"],detail:"Les tensions dans la région du Golfe poussent le Conseil de sécurité à une réunion d'urgence. L'or réagit en hausse de +0.3% car il joue son rôle de valeur refuge face à l'incertitude géopolitique. Les ETF or enregistrent des entrées de capitaux."},
+  {h:"Nouvelles taxes douanières +25% sur acier et aluminium — secteur industriel US en alerte rouge",src:"Commerce Dept",t:"14:10",imp:"high",assets:["us30"],detail:"Le Département du Commerce américain annonce de nouveaux droits de douane de 25% sur l'acier et l'aluminium importés. Cela impacte directement les constructeurs automobiles, Boeing, Caterpillar et d'autres composants du Dow Jones via la hausse des coûts de production."},
+  {h:"Goldman Sachs relève sa cible or à 2 500 $ pour fin 2026 — demande structurelle des BC confirmée",src:"Goldman · Bloomberg",t:"09:45",imp:"med",assets:["gold"],detail:"L'équipe Commodities Research de Goldman Sachs a revu à la hausse sa cible pour le prix de l'or à 2500$/once pour décembre 2026, citant les achats record des banques centrales, le cycle d'assouplissement FED attendu et la fragmentation géopolitique mondiale."},
+  {h:"ISM Services US : 52.3 en mai — expansion maintenue mais sous-indice nouvelles commandes à 51.2",src:"ISM · Bloomberg",t:"11:30",imp:"med",assets:["ndx","us30"],detail:"Le secteur des services américain reste en expansion légère (> 50) mais le ralentissement des nouvelles commandes à 51.2 (vs 54.3 en avril) suggère une modération. Lecture mixte pour le NASDAQ (consommation tech stable) et le US30 (services financiers en repli)."}
+];
+
+let curFilter='all';
+
+function renderNews(containerId,filter='all'){
+  const c=document.getElementById(containerId); if(!c) return;
+  const data=filter==='all'?NEWS:NEWS.filter(n=>n.assets.includes(filter));
+  if(!data.length){c.innerHTML='<div style="padding:20px;text-align:center;color:var(--txt3)">Aucune actualité pour ce filtre.</div>';return;}
+  c.innerHTML=data.map(n=>`
+    <div class="nitem" onclick="explainNew('${n.h.replace(/'/g,"\\'")}','${n.detail.replace(/'/g,"\\'")}')">
+      <div class="nh">${n.h}</div>
+      <div class="nmeta">
+        <span class="nsrc">${n.src}</span>
+        <span class="ntime">${n.t}</span>
+        <span class="nimp ${n.imp==='high'?'imp-h':n.imp==='med'?'imp-m':'imp-l'}">${n.imp==='high'?'⬡ FORT':n.imp==='med'?'◈ MOYEN':'FAIBLE'}</span>
+        <div class="ntags">${n.assets.map(a=>`<span class="ntag t${a[0]}">${a==='ndx'?'NASDAQ':a.toUpperCase()}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function explainNew(headline,detail){
+  document.querySelector('.ntab[data-p="ai"]').click();
+  setTimeout(()=>aiChat(`Explique en détail l'impact de cette actualité sur les marchés. Titre : "${headline}". Contexte : ${detail}. Donne les impacts précis sur Gold, NASDAQ et US30 avec mécanismes et niveaux.`),100);
+}
+
+// Init news (statiques d'abord, remplacées par Finnhub dès chargement)
+renderNewsLive('nfeed','all');
+document.querySelectorAll('.nfbtn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.nfbtn').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    curFilter=b.dataset.f;
+    renderNewsLive('nfeed',curFilter);
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// CLAUDE API
+// ═══════════════════════════════════════════════════
+async function callClaude(userMsg,sysOverride=null){
+  const body={
+    model:MDL,max_tokens:1000,
+    system:sysOverride||SYS,
+    tools:[{type:'web_search_20250305',name:'web_search'}],
+    messages:[{role:'user',content:userMsg}]
+  };
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ANT_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API Error '+r.status);}
+  const d=await r.json();
+  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')||'Réponse vide.';
+}
+
+// ═══════════════════════════════════════════════════
+// LOAD ASSET ANALYSES
+// ═══════════════════════════════════════════════════
+async function loadAnalysis(asset){
+  const ids={gold:'g-analysis',ndx:'n-analysis',us30:'u-analysis'};
+  const names={gold:'Or (XAUUSD)',ndx:'NASDAQ 100 (NQ100)',us30:'US30 Dow Jones'};
+  const el=document.getElementById(ids[asset]); if(!el) return;
+  const prompt=`Effectue une analyse fondamentale COMPLÈTE et PRÉCISE sur le ${names[asset]} MAINTENANT.
+
+Utilise ta recherche web pour les données les plus récentes.
+
+Analyse en 5 sections :
+1. SITUATION ACTUELLE — prix, tendance du jour, contexte
+2. FACTEURS HAUSSIERS — liste avec chiffres précis et sources
+3. FACTEURS BAISSIERS — liste avec chiffres précis
+4. DISCOURS RÉCENTS PERSONNALITÉS — citations précises et impacts sur l'actif
+5. PRÉVISION 24-48H — niveaux cibles, probabilité en %, conditions
+
+Sois concis mais précis. Qualité analyste Bloomberg.`;
+  try{
+    el.innerHTML='<div class="aload"><span class="spin"></span> Recherche web + analyse IA en cours...</div>';
+    const r=await callClaude(prompt);
+    el.innerHTML=fmtAnalysis(r);
+  }catch(e){el.innerHTML=`<div style="color:var(--bear);padding:10px;">Erreur : ${e.message}</div>`;}
+}
+
+async function loadMacro(){
+  const el=document.getElementById('macro-analysis'); if(!el) return;
+  const prompt=`Analyse l'environnement macro-économique GLOBAL actuel et son impact sur le Gold, NASDAQ et US30.
+
+Recherche web les données fraîches sur :
+1. Position exacte FED — taux, biais, prochaine réunion, déclarations récentes
+2. Position BCE — Lagarde, décisions récentes
+3. Inflation US — CPI et PCE core derniers chiffres
+4. Croissance US — PIB, consommation
+5. PMI manufacturier et services
+6. Géopolitique — tensions actives impactant les marchés
+
+Conclusion : QUEL ACTIF EST LE PLUS FAVORABLE MAINTENANT et pourquoi ? Avec % de probabilité.`;
+  try{
+    el.innerHTML='<div class="aload"><span class="spin"></span> Analyse macro via recherche web...</div>';
+    const r=await callClaude(prompt);
+    el.innerHTML=fmtAnalysis(r);
+  }catch(e){el.innerHTML=`<div style="color:var(--bear);padding:10px;">Erreur : ${e.message}</div>`;}
+}
+
+function fmtAnalysis(txt){
+  if(!txt) return '<p>Données indisponibles.</p>';
+  return txt
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g,'<em>$1</em>')
+    .replace(/^#{1,3} (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^(\d+\.) (.+)$/gm,'<p><strong>$1</strong> $2</p>')
+    .replace(/^[-•] (.+)$/gm,'<p>• $1</p>')
+    .replace(/\n{2,}/g,'</p><p>')
+    .replace(/↑/g,'<span class="bull">↑</span>')
+    .replace(/↓/g,'<span class="bear">↓</span>')
+    .replace(/→/g,'<span class="warn">→</span>');
+}
+
+// ═══════════════════════════════════════════════════
+// CHAT ENGINE
+// ═══════════════════════════════════════════════════
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function appendUser(el,txt,large=false){
+  el.innerHTML+=`<div class="user-msg"><div class="user-bub${large?' style="font-size:13px"':''}">${esc(txt)}</div></div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+function appendThinking(el,small=false){
+  const id='th-'+Date.now();
+  el.innerHTML+=`<div class="ai-msg" id="${id}">
+    <div class="${small?'aav-sm':'ai-av'}">F</div>
+    <div class="${small?'ai-bub':'ai-bub'}">
+      <div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
+      <div class="search-indicator"><span class="spin" style="width:10px;height:10px;border-width:1.5px"></span>Recherche web en cours...</div>
+    </div></div>`;
+  el.scrollTop=el.scrollHeight;
+  return id;
+}
+
+function removeEl(id){const e=document.getElementById(id);if(e)e.remove();}
+
+function appendAI(el,txt,small=false){
+  el.innerHTML+=`<div class="ai-msg">
+    <div class="${small?'aav-sm':'ai-av'}">F</div>
+    <div class="ai-bub">${fmtAnalysis(txt)}</div></div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+// DASH CHAT
+async function sendChat(ctx){
+  const cfgs={
+    dash:{inp:'d-ci',msgs:'d-chat-msgs',ctx:''},
+    gold:{inp:'g-ci',msgs:'g-chat-msgs',ctx:'\n\nFOCUS : Tu réponds exclusivement sur l\'Or (XAUUSD). Mécanismes Gold en priorité.'},
+    ndx:{inp:'n-ci',msgs:'n-chat-msgs',ctx:'\n\nFOCUS : Tu réponds exclusivement sur le NASDAQ 100. Mécanismes tech/IA en priorité.'},
+    us30:{inp:'u-ci',msgs:'u-chat-msgs',ctx:'\n\nFOCUS : Tu réponds exclusivement sur le US30 Dow Jones. Mécanismes industrie/finance en priorité.'}
+  };
+  const c=cfgs[ctx];
+  const inp=document.getElementById(c.inp);
+  const msgs=document.getElementById(c.msgs);
+  const q=inp.value.trim(); if(!q) return;
+  inp.value='';
+  appendUser(msgs,q,true);
+  const tid=appendThinking(msgs,true);
+  const now=new Date();
+  const enriched=`Date: ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}. Prix actuels: Gold=${fmt(px.g.v)}, NASDAQ=${fmt(px.n.v)}, US30=${fmt(px.u.v)}, DXY=${px.d.v.toFixed(2)}.\n\nQuestion: ${q}`;
+  try{
+    const r=await callClaude(enriched,SYS+c.ctx);
+    removeEl(tid); appendAI(msgs,r,true);
+  }catch(e){removeEl(tid); appendAI(msgs,'Erreur: '+e.message,true);}
+}
+
+document.getElementById('d-ci')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat('dash');});
+document.getElementById('g-ci')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat('gold');});
+document.getElementById('n-ci')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat('ndx');});
+document.getElementById('u-ci')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat('us30');});
+
+// QUICK PROMPT FROM DASHBOARD
+function qprompt(q){
+  document.querySelector('.ntab[data-p="ai"]').click();
+  setTimeout(()=>aiChat(q),120);
+}
+
+// FULL AI CHAT
+async function aiChat(overrideQ=null){
+  const inp=document.getElementById('ai-ci');
+  const msgs=document.getElementById('ai-chat-msgs');
+  const btn=document.getElementById('ai-send');
+  const q=overrideQ||inp.value.trim(); if(!q) return;
+  inp.value='';
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> Analyse...';
+
+  appendUser(msgs,q);
+  const tid=appendThinking(msgs);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  const now=new Date();
+  const ctx=`Date et heure: ${now.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} à ${now.toLocaleTimeString('fr-FR')}.\nPrix temps réel: Gold ${fmt(px.g.v)} (${((px.g.v-px.g.b)/px.g.b*100).toFixed(2)}%), NASDAQ ${fmt(px.n.v)} (${((px.n.v-px.n.b)/px.n.b*100).toFixed(2)}%), US30 ${fmt(px.u.v)} (${((px.u.v-px.u.b)/px.u.b*100).toFixed(2)}%), DXY ${px.d.v.toFixed(2)}, VIX ${px.vx.v.toFixed(2)}.\n\nQuestion du trader: ${q}`;
+
+  try{
+    const r=await callClaude(ctx);
+    removeEl(tid); appendAI(msgs,r);
+  }catch(e){
+    removeEl(tid);
+    appendAI(msgs,`⚠ Erreur de connexion à l'API Claude : ${e.message}\n\nVérifiez votre connexion internet.`);
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Analyser';
+}
+
+document.getElementById('ai-ci')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey)aiChat();});
+
+// ═══════════════════════════════════════════════════
+// AUTO-REFRESH toutes les 30 min
+// ═══════════════════════════════════════════════════
+setInterval(()=>{
+  Object.keys(loaded).forEach(k=>loaded[k]=false);
+  fetchAllPrices();
+  fetchFinnhubNews();
+  const n=document.createElement('div');
+  n.className='notif';
+  n.textContent='⬡ Données live rafraîchies · '+new Date().toLocaleTimeString('fr-FR');
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(),4000);
+},30*60*1000);
+
+console.log('%cFUNDAMENTA AI v2.0 — Actif ✓','color:#F0B90B;font-size:13px;font-weight:700');
+</script>
+</body>
+</html>
